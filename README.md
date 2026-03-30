@@ -1,6 +1,6 @@
 # onelog 📝
 
-[中文文档](README_zh.md)
+**English | [中文](README_zh.md)**
 
 A lightweight Python logging module built on [Rich](https://github.com/textualize/rich).
 

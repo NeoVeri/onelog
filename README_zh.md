@@ -1,5 +1,7 @@
 # onelog 📝
 
+**[English](README.md) | 中文**
+
 基于 [Rich](https://github.com/textualize/rich) 的轻量级 Python 日志模块。
 
 ## 功能特性
