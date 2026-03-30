@@ -29,7 +29,8 @@ _DEFAULT_CONFIG = {
     "show_loc": False,
     "show_time": True,
     "show_summary": True,
-    "log_file": None,
+    "gen_log": True,
+    "log_file": "app.log",
     "log_format": "%(asctime)s | %(levelname)-8s | %(pathname)s:%(lineno)d | %(message)s",
     "date_format": "[%H:%M:%S]",
 }
@@ -93,6 +94,7 @@ def get_logger(
     show_loc: bool = None,
     show_time: bool = None,
     show_summary: bool = None,
+    gen_log: bool = None,
     log_file: str = None,
 ) -> logging.Logger:
     """
@@ -107,7 +109,8 @@ def get_logger(
         show_loc:    终端是否显示 文件:行号，默认 False
         show_time:   终端是否显示时间，默认 True
         show_summary:脚本退出时是否打印 summary，默认 True
-        log_file:    日志文件路径（None 则不写文件）
+        gen_log:     是否生成日志文件，默认 True
+        log_file:    日志文件路径（默认 "app.log"）
 
     Returns:
         logging.Logger 实例
@@ -125,8 +128,13 @@ def get_logger(
             _global_config["show_time"] = show_time
         if show_summary is not None:
             _global_config["show_summary"] = show_summary
+        if gen_log is not None:
+            _global_config["gen_log"] = gen_log
         if log_file is not None:
             _global_config["log_file"] = log_file
+        # gen_log=False 时清除 log_file
+        if _global_config["gen_log"] is False:
+            _global_config["log_file"] = None
         _apply_config()
         _configured = True
 

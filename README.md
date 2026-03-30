@@ -1,42 +1,58 @@
 # onelog 📝
 
-**English | [中文](README_zh.md)**
+**中文 | [English](README_en.md)**
 
-A lightweight Python logging module built on [Rich](https://github.com/textualize/rich).
+基于 [Rich](https://github.com/textualize/rich) 的轻量级 Python 日志模块。
 
-## Features
+## 功能特性
 
-- 🎨 Color-coded terminal output (WARNING=yellow, ERROR=red, FATAL=purple)
-- 📁 Optional file logging (plain text)
-- 📍 File path & line number display (toggleable)
-- 📊 Auto log summary on script exit
-- 💀 `log.fatal()` — print and exit
-- 🔧 Multi-module support — top-level config overrides sub-modules
+- 🎨 终端彩色输出（WARNING=黄色，ERROR=红色，FATAL=紫色）
+- 📁 可选文件日志（纯文本）
+- 📍 显示文件名和行号（可开关）
+- 📊 脚本退出时自动打印日志统计
+- 💀 `log.fatal()` — 打印日志后立即退出脚本
+- 🔧 多模块支持 — 顶层配置自动覆盖子模块
 
-## Requirements
+## 环境要求
 
 - Python 3.8+
-- `rich` (only dependency)
+- 仅依赖 `rich`
 
 ```bash
 pip install rich
 ```
 
-## Usage
+## 使用方法
 
 ```python
 from onelog import get_logger
 
+# 顶层模块配置（第一个调用 get_logger 的决定全局配置）
 log = get_logger(__name__, level="DEBUG", show_path=True, log_file="app.log")
 
-log.debug("debug message")
-log.info("info message")
-log.warning("warning message")
-log.error("error message")
-log.fatal("fatal error, script exits here")
+log.debug("调试信息")
+log.info("正常信息")
+log.warning("警告信息")
+log.error("错误信息")
+log.fatal("致命错误，脚本将退出")
 ```
 
-Log summary prints automatically when the script exits:
+子模块不需要配置，直接用就行（自动继承顶层配置）：
+
+```python
+# finder.py
+from onelog import get_logger
+
+log = get_logger(__name__)
+
+def find_data(query):
+    log.debug(f"搜索: {query}")
+    return []
+```
+
+## 日志统计
+
+脚本退出时自动打印统计信息，无需手动调用：
 
 ```
 ──────────────────────────────── 📊 Log Summary ────────────────────────────────
