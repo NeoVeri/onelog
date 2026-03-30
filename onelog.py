@@ -25,7 +25,7 @@ install(show_locals=True)
 
 # 默认配置
 _DEFAULT_CONFIG = {
-    "level": logging.DEBUG,
+    "level": logging.INFO,
     "show_loc": False,
     "show_time": True,
     "show_summary": True,
