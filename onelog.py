@@ -6,9 +6,10 @@ onelog.py — 统一日志配置模块
 1. RichHandler 终端彩色输出
 2. FileHandler 文件记录
 3. 支持显示文件名+行号（可开关）
-4. 多模块调用时，顶层配置覆盖子模块
-5. get_logger() 本身支持配置参数，子模块可独立运行调试
-6. log_summary() 打印各级别日志数量统计
+4. 支持显示时间（可开关）
+5. 多模块调用时，顶层配置覆盖子模块
+6. get_logger() 本身支持配置参数，子模块可独立运行调试
+7. log_summary() 打印各级别日志数量统计（可开关）
 
 调用方式见文件底部示例
 """
@@ -25,7 +26,9 @@ install(show_locals=True)
 # 默认配置
 _DEFAULT_CONFIG = {
     "level": logging.DEBUG,
-    "show_path": True,
+    "show_loc": False,
+    "show_time": True,
+    "show_summary": True,
     "log_file": None,
     "log_format": "%(asctime)s | %(levelname)-8s | %(pathname)s:%(lineno)d | %(message)s",
     "date_format": "[%H:%M:%S]",
@@ -39,7 +42,7 @@ class FatalError(Exception):
     """FATAL 日志触发的异常"""
     pass
 
-# 全局配置（首次 setup_logging 调用后锁定）
+# 全局配置（首次 get_logger 调用后锁定）
 _global_config = None
 _configured = False
 
@@ -87,7 +90,9 @@ def log_summary():
 def get_logger(
     name: str = None,
     level: int = None,
-    show_path: bool = None,
+    show_loc: bool = None,
+    show_time: bool = None,
+    show_summary: bool = None,
     log_file: str = None,
 ) -> logging.Logger:
     """
@@ -97,10 +102,12 @@ def get_logger(
     - 如果全局未配置，用传入的参数（缺失则用默认值）完成配置
 
     Args:
-        name:      logger 名称，传 __name__
-        level:     日志级别 (DEBUG/INFO/WARNING/ERROR)
-        show_path: 终端是否显示 文件:行号
-        log_file:  日志文件路径（None 则不写文件）
+        name:        logger 名称，传 __name__
+        level:       日志级别 (DEBUG/INFO/WARNING/ERROR)
+        show_loc:    终端是否显示 文件:行号，默认 False
+        show_time:   终端是否显示时间，默认 True
+        show_summary:脚本退出时是否打印 summary，默认 True
+        log_file:    日志文件路径（None 则不写文件）
 
     Returns:
         logging.Logger 实例
@@ -112,8 +119,12 @@ def get_logger(
         _global_config = dict(_DEFAULT_CONFIG)
         if level is not None:
             _global_config["level"] = level
-        if show_path is not None:
-            _global_config["show_path"] = show_path
+        if show_loc is not None:
+            _global_config["show_loc"] = show_loc
+        if show_time is not None:
+            _global_config["show_time"] = show_time
+        if show_summary is not None:
+            _global_config["show_summary"] = show_summary
         if log_file is not None:
             _global_config["log_file"] = log_file
         _apply_config()
@@ -143,9 +154,9 @@ def _apply_config():
     rich_handler = RichHandler(
         console=console,
         rich_tracebacks=True,
-        show_path=_global_config["show_path"],
+        show_path=_global_config["show_loc"],
         show_level=True,
-        show_time=True,
+        show_time=_global_config["show_time"],
         log_time_format=_global_config["date_format"],
         markup=False,
     )
@@ -178,8 +189,9 @@ def _apply_config():
     # 给 Logger 添加 fatal() 方法：打印后退出
     _patch_logger_fatal()
 
-    # 注册退出时自动打印 summary
-    atexit.register(log_summary)
+    # 注册退出时自动打印 summary（根据配置决定）
+    if _global_config["show_summary"]:
+        atexit.register(log_summary)
 
 
 def _patch_logger_fatal():
@@ -200,7 +212,7 @@ def _patch_logger_fatal():
 if __name__ == "__main__":
     from onelog import get_logger
 
-    log = get_logger(__name__, level=logging.DEBUG, show_path=True, log_file="app.log")
+    log = get_logger(__name__, level=logging.DEBUG, show_loc=True, show_time=True, log_file="app.log")
 
     log.debug("调试信息")
     log.info("处理完成")
@@ -210,4 +222,4 @@ if __name__ == "__main__":
     log.error("出错了")
     log.error("又一个 error")
     log.error("第三个 error")
-    # 不需要调用 log_summary()，脚本退出时自动打印
+    # show_summary=True，脚本退出时自动打印
