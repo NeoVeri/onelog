@@ -3,7 +3,7 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "majingjaor-onelog"
+name = "neoveri-onelog"
 version = "0.1.0"
 description = "A lightweight Rich-based logging module"
 readme = "README.md"

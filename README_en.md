@@ -29,7 +29,7 @@ python3 -m pip install "git+https://github.com/NeoVeri/onelog.git@v0.1.0"
 ```
 
 The current package version is `0.1.0`. Its distribution name is
-`majingjaor-onelog`, while its import name remains `onelog`.
+`neoveri-onelog`, while its import name remains `onelog`.
 
 ## Usage
 

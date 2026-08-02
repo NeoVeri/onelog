@@ -28,7 +28,7 @@ python3 -m pip install .
 python3 -m pip install "git+https://github.com/NeoVeri/onelog.git@v0.1.0"
 ```
 
-当前包版本为 `0.1.0`，发行名为 `majingjaor-onelog`，导入名保持为
+当前包版本为 `0.1.0`，发行名为 `neoveri-onelog`，导入名保持为
 `onelog`。
 
 ## 使用方法
