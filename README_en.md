@@ -25,7 +25,7 @@ python3 -m pip install .
 You can also install a tagged release directly from GitHub:
 
 ```bash
-python3 -m pip install "git+https://github.com/majingjaor/onelog.git@v0.1.0"
+python3 -m pip install "git+https://github.com/NeoVeri/onelog.git@v0.1.0"
 ```
 
 The current package version is `0.1.0`. Its distribution name is

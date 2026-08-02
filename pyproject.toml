@@ -9,7 +9,7 @@ description = "A lightweight Rich-based logging module"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {file = "LICENSE"}
-authors = [{name = "majingjaor"}]
+authors = [{name = "NeoVeri"}]
 dependencies = ["rich>=13,<15"]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -25,9 +25,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/majingjaor/onelog"
-Repository = "https://github.com/majingjaor/onelog"
-Issues = "https://github.com/majingjaor/onelog/issues"
+Homepage = "https://github.com/NeoVeri/onelog"
+Repository = "https://github.com/NeoVeri/onelog"
+Issues = "https://github.com/NeoVeri/onelog/issues"
 
 [project.optional-dependencies]
 test = ["pytest>=7"]
