@@ -1,10 +1,39 @@
-#!/usr/bin/env python3
-from onelog import get_logger
 import logging
 
-log = get_logger(__name__, level=logging.DEBUG, show_loc=True)
+import pytest
 
-log.info("正常运行中...")
-log.warning("有点问题")
-log.fatal("数据库连接彻底失败，无法继续")  # 打印后退出
-log.info("这行不会执行")
+import onelog
+
+
+@pytest.fixture(autouse=True)
+def reset_onelog_state():
+    onelog._configured = False
+    onelog._global_config = None
+    logging.getLogger().handlers.clear()
+    yield
+    logging.getLogger().handlers.clear()
+
+
+def test_package_exposes_version_and_logger():
+    logger = onelog.get_logger(
+        __name__,
+        level=logging.DEBUG,
+        show_summary=False,
+        gen_log=False,
+    )
+
+    assert onelog.__version__ == "0.1.0"
+    assert isinstance(logger, logging.Logger)
+
+
+def test_fatal_logs_and_exits_with_one():
+    logger = onelog.get_logger(
+        __name__,
+        show_summary=False,
+        gen_log=False,
+    )
+
+    with pytest.raises(SystemExit) as raised:
+        logger.fatal("无法继续")
+
+    assert raised.value.code == 1

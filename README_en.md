@@ -19,8 +19,17 @@ A lightweight Python logging module built on [Rich](https://github.com/textualiz
 - `rich` (only dependency)
 
 ```bash
-pip install rich
+python3 -m pip install .
 ```
+
+You can also install a tagged release directly from GitHub:
+
+```bash
+python3 -m pip install "git+https://github.com/majingjaor/onelog.git@v0.1.0"
+```
+
+The current package version is `0.1.0`. Its distribution name is
+`majingjaor-onelog`, while its import name remains `onelog`.
 
 ## Usage
 
