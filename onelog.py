@@ -20,6 +20,8 @@ import atexit
 from rich.logging import RichHandler
 from rich.traceback import install
 
+__version__ = "0.1.0"
+
 # 全局安装 Rich traceback
 install(show_locals=True)
 

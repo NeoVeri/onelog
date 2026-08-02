@@ -19,8 +19,17 @@
 - 仅依赖 `rich`
 
 ```bash
-pip install rich
+python3 -m pip install .
 ```
+
+也可以直接从 GitHub 安装已标记的版本：
+
+```bash
+python3 -m pip install "git+https://github.com/BottiCelle/onelog.git@v0.1.0"
+```
+
+当前包版本为 `0.1.0`，发行名为 `botticelle-onelog`，导入名保持为
+`onelog`。
 
 ## 使用方法
 
