@@ -1,8 +1,8 @@
-# `one-log` PyPI Distribution Implementation Plan
+# `onelogg` PyPI Distribution Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Publish version `0.1.1` to PyPI as distribution `one-log` while preserving `from onelog import get_logger`.
+**Goal:** Publish version `0.1.1` to PyPI as distribution `onelogg` while preserving `from onelog import get_logger`.
 
 **Architecture:** Keep the existing single-module setuptools package and change only its distribution identity and version. Add a release-triggered GitHub Actions pipeline with separate build and OIDC publishing jobs, then validate the published artifact from a clean environment.
 
@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- The PyPI distribution name is exactly `one-log`.
+- The PyPI distribution name is exactly `onelogg`.
 - The import module remains exactly `onelog` and setuptools keeps `py-modules = ["onelog"]`.
 - The release version is exactly `0.1.1`; do not move or replace tag `v0.1.0`.
 - The only runtime dependency remains `rich>=13,<15`.
@@ -40,14 +40,14 @@
 
 **Interfaces:**
 - Consumes: setuptools `[project]` metadata and `py-modules = ["onelog"]`.
-- Produces: wheel distribution `one-log==0.1.1`, import module `onelog`, and `onelog.__version__ == "0.1.1"`.
+- Produces: wheel distribution `onelogg==0.1.1`, import module `onelog`, and `onelog.__version__ == "0.1.1"`.
 
 - [ ] **Step 1: Update the wheel test to express the new identity**
 
 Replace the existing distribution test in `test_distribution.py` with:
 
 ```python
-def test_wheel_uses_one_log_distribution_identity(tmp_path: Path) -> None:
+def test_wheel_uses_onelogg_distribution_identity(tmp_path: Path) -> None:
     project_root = Path(__file__).parent
     completed = subprocess.run(
         [
@@ -67,7 +67,7 @@ def test_wheel_uses_one_log_distribution_identity(tmp_path: Path) -> None:
     )
 
     assert completed.returncode == 0, completed.stdout + completed.stderr
-    wheel = next(tmp_path.glob("one_log-0.1.1-*.whl"))
+    wheel = next(tmp_path.glob("onelogg-0.1.1-*.whl"))
     with ZipFile(wheel) as archive:
         names = archive.namelist()
         metadata_path = next(
@@ -75,7 +75,7 @@ def test_wheel_uses_one_log_distribution_identity(tmp_path: Path) -> None:
         )
         metadata = BytesParser().parsebytes(archive.read(metadata_path))
 
-    assert metadata["Name"] == "one-log"
+    assert metadata["Name"] == "onelogg"
     assert metadata["Version"] == "0.1.1"
     assert metadata["Author"] == "BottiCelle"
     assert "onelog.py" in names
@@ -105,7 +105,7 @@ Run:
 python -m pytest test_distribution.py test_fatal.py::test_package_exposes_version_and_logger -v
 ```
 
-Expected: FAIL because no `one_log-0.1.1-*.whl` exists and the module still reports `0.1.0`.
+Expected: FAIL because no `onelogg-0.1.1-*.whl` exists and the module still reports `0.1.0`.
 
 - [ ] **Step 3: Make the minimal metadata and module changes**
 
@@ -113,7 +113,7 @@ In `pyproject.toml`, set:
 
 ```toml
 [project]
-name = "one-log"
+name = "onelogg"
 version = "0.1.1"
 ```
 
@@ -154,7 +154,7 @@ Expected: all tests PASS with no warnings or errors.
 
 ```bash
 git add pyproject.toml onelog.py test_distribution.py test_fatal.py
-git commit -m "chore: rename PyPI distribution to one-log"
+git commit -m "chore: rename PyPI distribution to onelogg"
 ```
 
 ### Task 2: Document and automate the release
@@ -166,7 +166,7 @@ git commit -m "chore: rename PyPI distribution to one-log"
 - Create: `.github/workflows/publish.yml`
 
 **Interfaces:**
-- Consumes: `one-log==0.1.1` metadata from Task 1.
+- Consumes: `onelogg==0.1.1` metadata from Task 1.
 - Produces: public installation instructions and a release-triggered OIDC publisher that uploads the contents of `dist/`.
 
 - [ ] **Step 1: Update both README files**
@@ -174,10 +174,10 @@ git commit -m "chore: rename PyPI distribution to one-log"
 In both `README.md` and `README_en.md`, replace the local-install-only primary example with:
 
 ```bash
-python3 -m pip install one-log
+python3 -m pip install onelogg
 ```
 
-Describe version `0.1.1`, distribution name `one-log`, and import name `onelog`.
+Describe version `0.1.1`, distribution name `onelogg`, and import name `onelog`.
 Preserve the existing GitHub installation alternative but update its tag to
 `v0.1.1`; preserve the existing usage examples.
 
@@ -233,7 +233,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/one-log
+      url: https://pypi.org/p/onelogg
     permissions:
       id-token: write
     steps:
@@ -293,7 +293,7 @@ human prose and YAML source text do not receive brittle string-assertion tests.
 
 ```bash
 git add README.md README_en.md .github/dependabot.yml .github/workflows/publish.yml
-git commit -m "ci: publish one-log releases to PyPI"
+git commit -m "ci: publish onelogg releases to PyPI"
 ```
 
 ### Task 3: Build and install the exact release artifacts locally
@@ -325,15 +325,15 @@ ls -1 "$release_env/dist"
 Expected files:
 
 ```text
-one_log-0.1.1-py3-none-any.whl
-one_log-0.1.1.tar.gz
+onelogg-0.1.1-py3-none-any.whl
+onelogg-0.1.1.tar.gz
 ```
 
 - [ ] **Step 3: Validate artifact metadata**
 
 ```bash
 "$release_env/venv/bin/python" -m twine check "$release_env"/dist/*
-"$release_env/venv/bin/python" -m zipfile -l "$release_env/dist/one_log-0.1.1-py3-none-any.whl"
+"$release_env/venv/bin/python" -m zipfile -l "$release_env/dist/onelogg-0.1.1-py3-none-any.whl"
 ```
 
 Expected: Twine reports `PASSED` for both artifacts and the wheel listing contains `onelog.py`.
@@ -343,7 +343,7 @@ Expected: Twine reports `PASSED` for both artifacts and the wheel listing contai
 ```bash
 install_env=$(mktemp -d)
 python -m venv "$install_env/venv"
-"$install_env/venv/bin/python" -m pip install "$release_env/dist/one_log-0.1.1-py3-none-any.whl"
+"$install_env/venv/bin/python" -m pip install "$release_env/dist/onelogg-0.1.1-py3-none-any.whl"
 (cd /tmp && "$install_env/venv/bin/python" -c 'import sys; from pathlib import Path; from onelog import get_logger; import onelog; assert Path(sys.prefix).resolve() in Path(onelog.__file__).resolve().parents; assert onelog.__version__ == "0.1.1"; assert callable(get_logger)')
 ```
 
@@ -363,11 +363,11 @@ Expected: no uncommitted changes and the intended design, identity, and workflow
 ### Task 4: Configure Trusted Publishing and publish `v0.1.1`
 
 **Files:**
-- External state: PyPI pending publisher, GitHub `pypi` environment, `main` branch, tag and release `v0.1.1`, Actions run, and PyPI project `one-log`.
+- External state: PyPI pending publisher, GitHub `pypi` environment, `main` branch, tag and release `v0.1.1`, Actions run, and PyPI project `onelogg`.
 
 **Interfaces:**
 - Consumes: verified commits and artifacts from Tasks 1–3.
-- Produces: public PyPI release `one-log==0.1.1` installable with import module `onelog`.
+- Produces: public PyPI release `onelogg==0.1.1` installable with import module `onelog`.
 
 - [ ] **Step 1: Recheck that the target PyPI project does not exist**
 
@@ -377,11 +377,11 @@ from urllib.error import HTTPError
 from urllib.request import urlopen
 
 try:
-    urlopen("https://pypi.org/pypi/one-log/json")
+    urlopen("https://pypi.org/pypi/onelogg/json")
 except HTTPError as exc:
     assert exc.code == 404, exc
 else:
-    raise SystemExit("one-log already exists on PyPI; inspect ownership before publishing")
+    raise SystemExit("onelogg already exists on PyPI; inspect ownership before publishing")
 PY
 ```
 
@@ -392,7 +392,7 @@ Expected: command exits successfully after observing HTTP 404. If the project no
 Using the authenticated PyPI account, open the pending publisher form and enter exactly:
 
 ```text
-PyPI project name: one-log
+PyPI project name: onelogg
 Owner: BottiCelle
 Repository: onelog
 Workflow filename: publish.yml
@@ -422,7 +422,7 @@ Expected: tests pass, the worktree is clean, and `main` pushes successfully.
 - [ ] **Step 5: Create the immutable release tag and GitHub Release**
 
 ```bash
-gh release create v0.1.1 --repo BottiCelle/onelog --target main --title "v0.1.1" --notes "Publish the package to PyPI as one-log while preserving the onelog import name."
+gh release create v0.1.1 --repo BottiCelle/onelog --target main --title "v0.1.1" --notes "Publish the package to PyPI as onelogg while preserving the onelog import name."
 ```
 
 Expected: GitHub creates tag and release `v0.1.1`; do not reuse or move `v0.1.0`.
@@ -459,14 +459,14 @@ rerunning anything.
 ```bash
 published_env=$(mktemp -d)
 python -m venv "$published_env/venv"
-"$published_env/venv/bin/python" -m pip install --no-cache-dir "one-log==0.1.1"
+"$published_env/venv/bin/python" -m pip install --no-cache-dir "onelogg==0.1.1"
 (cd /tmp && "$published_env/venv/bin/python" -c 'import sys; from pathlib import Path; from onelog import get_logger; import onelog; assert Path(sys.prefix).resolve() in Path(onelog.__file__).resolve().parents; assert onelog.__version__ == "0.1.1"; assert callable(get_logger)')
-"$published_env/venv/bin/python" -m pip show one-log
+"$published_env/venv/bin/python" -m pip show onelogg
 ```
 
 Expected: PyPI installation succeeds, the import smoke test resolves `onelog`
 from inside the isolated environment's `sys.prefix`, and `pip show` reports
-`Name: one-log` and `Version: 0.1.1`.
+`Name: onelogg` and `Version: 0.1.1`.
 
 - [ ] **Step 8: Audit the final external state**
 
@@ -477,12 +477,12 @@ python - <<'PY'
 import json
 from urllib.request import urlopen
 
-data = json.load(urlopen("https://pypi.org/pypi/one-log/0.1.1/json"))
-assert data["info"]["name"] == "one-log"
+data = json.load(urlopen("https://pypi.org/pypi/onelogg/0.1.1/json"))
+assert data["info"]["name"] == "onelogg"
 assert data["info"]["version"] == "0.1.1"
 assert {item["packagetype"] for item in data["urls"]} == {"bdist_wheel", "sdist"}
 print("PyPI completion audit passed")
 PY
 ```
 
-Expected: the release is neither draft nor prerelease, the latest publishing run succeeded, and PyPI exposes both wheel and source distribution for `one-log==0.1.1`.
+Expected: the release is neither draft nor prerelease, the latest publishing run succeeded, and PyPI exposes both wheel and source distribution for `onelogg==0.1.1`.

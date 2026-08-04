@@ -5,7 +5,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 
-def test_wheel_uses_one_log_distribution_identity(tmp_path: Path) -> None:
+def test_wheel_uses_onelogg_distribution_identity(tmp_path: Path) -> None:
     project_root = Path(__file__).parent
     completed = subprocess.run(
         [
@@ -25,7 +25,7 @@ def test_wheel_uses_one_log_distribution_identity(tmp_path: Path) -> None:
     )
 
     assert completed.returncode == 0, completed.stdout + completed.stderr
-    wheel = next(tmp_path.glob("one_log-0.1.1-*.whl"))
+    wheel = next(tmp_path.glob("onelogg-0.1.1-*.whl"))
     with ZipFile(wheel) as archive:
         names = archive.namelist()
         metadata_path = next(
@@ -33,7 +33,7 @@ def test_wheel_uses_one_log_distribution_identity(tmp_path: Path) -> None:
         )
         metadata = BytesParser().parsebytes(archive.read(metadata_path))
 
-    assert metadata["Name"] == "one-log"
+    assert metadata["Name"] == "onelogg"
     assert metadata["Version"] == "0.1.1"
     assert metadata["Author"] == "BottiCelle"
     assert "onelog.py" in names
