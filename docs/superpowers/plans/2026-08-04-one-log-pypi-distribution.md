@@ -23,7 +23,7 @@
 
 - `pyproject.toml`: authoritative distribution metadata and setuptools module mapping.
 - `onelog.py`: importable module and runtime `__version__` value.
-- `test_distribution.py`: wheel identity, metadata, contents, documentation, and workflow regression tests.
+- `test_distribution.py`: wheel identity, metadata, and contents regression tests.
 - `test_fatal.py`: public package version and logger behavior tests.
 - `README.md`: Chinese installation and distribution-name documentation.
 - `README_en.md`: English installation and distribution-name documentation.
@@ -150,10 +150,9 @@ git add pyproject.toml onelog.py test_distribution.py test_fatal.py
 git commit -m "chore: rename PyPI distribution to one-log"
 ```
 
-### Task 2: Document and automate the release test-first
+### Task 2: Document and automate the release
 
 **Files:**
-- Modify: `test_distribution.py`
 - Modify: `README.md`
 - Modify: `README_en.md`
 - Create: `.github/workflows/publish.yml`
@@ -162,49 +161,7 @@ git commit -m "chore: rename PyPI distribution to one-log"
 - Consumes: `one-log==0.1.1` metadata from Task 1.
 - Produces: public installation instructions and a release-triggered OIDC publisher that uploads the contents of `dist/`.
 
-- [ ] **Step 1: Add regression tests for the docs and publishing contract**
-
-Append to `test_distribution.py`:
-
-```python
-import pytest
-
-
-@pytest.mark.parametrize("readme_name", ["README.md", "README_en.md"])
-def test_readme_uses_public_distribution_and_import_names(readme_name: str) -> None:
-    text = (Path(__file__).parent / readme_name).read_text(encoding="utf-8")
-
-    assert "pip install one-log" in text
-    assert "`one-log`" in text
-    assert "from onelog import get_logger" in text
-    assert "botticelle-onelog" not in text
-
-
-def test_publish_workflow_uses_release_oidc_without_a_token() -> None:
-    workflow = (
-        Path(__file__).parent / ".github" / "workflows" / "publish.yml"
-    ).read_text(encoding="utf-8")
-
-    assert "release:" in workflow
-    assert "types: [published]" in workflow
-    assert "environment:" in workflow
-    assert "name: pypi" in workflow
-    assert "id-token: write" in workflow
-    assert "pypa/gh-action-pypi-publish@release/v1" in workflow
-    assert "password:" not in workflow
-```
-
-- [ ] **Step 2: Run the new tests and verify RED**
-
-Run:
-
-```bash
-python -m pytest test_distribution.py::test_readme_uses_public_distribution_and_import_names test_distribution.py::test_publish_workflow_uses_release_oidc_without_a_token -v
-```
-
-Expected: FAIL because the READMEs still name `botticelle-onelog` and `publish.yml` does not exist.
-
-- [ ] **Step 3: Update both README files**
+- [ ] **Step 1: Update both README files**
 
 In both `README.md` and `README_en.md`, replace the local-install-only primary example with:
 
@@ -216,7 +173,7 @@ Describe version `0.1.1`, distribution name `one-log`, and import name `onelog`.
 Preserve the existing GitHub installation alternative but update its tag to
 `v0.1.1`; preserve the existing usage examples.
 
-- [ ] **Step 4: Create the publishing workflow**
+- [ ] **Step 2: Create the publishing workflow**
 
 Create `.github/workflows/publish.yml` with:
 
@@ -282,32 +239,35 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
 ```
 
-- [ ] **Step 5: Run the new tests and complete suite to verify GREEN**
+- [ ] **Step 3: Run the complete suite**
 
 Run:
 
 ```bash
-python -m pytest test_distribution.py::test_readme_uses_public_distribution_and_import_names test_distribution.py::test_publish_workflow_uses_release_oidc_without_a_token -v
 python -m pytest -v
 ```
 
 Expected: all tests PASS with no warnings or errors.
 
-- [ ] **Step 6: Check stale names and YAML whitespace**
+- [ ] **Step 4: Inspect the human-facing docs and workflow configuration**
 
 Run:
 
 ```bash
 rg -n "botticelle-onelog|version is `0\.1\.0`|版本为 `0\.1\.0`" README.md README_en.md pyproject.toml test_distribution.py
+sed -n '1,220p' .github/workflows/publish.yml
 git diff --check
 ```
 
-Expected: `rg` returns no matches and `git diff --check` returns success.
+Expected: `rg` returns no matches, the workflow visibly matches the exact
+configuration in Step 2 without a password, and `git diff --check` succeeds.
+The real release run in Task 4 is the authoritative workflow behavior test;
+human prose and YAML source text do not receive brittle string-assertion tests.
 
-- [ ] **Step 7: Commit documentation and automation**
+- [ ] **Step 5: Commit documentation and automation**
 
 ```bash
-git add README.md README_en.md test_distribution.py .github/workflows/publish.yml
+git add README.md README_en.md .github/workflows/publish.yml
 git commit -m "ci: publish one-log releases to PyPI"
 ```
 
