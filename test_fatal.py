@@ -22,7 +22,7 @@ def test_package_exposes_version_and_logger():
         gen_log=False,
     )
 
-    assert onelog.__version__ == "0.1.0"
+    assert onelog.__version__ == "0.1.1"
     assert isinstance(logger, logging.Logger)
 
 

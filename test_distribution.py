@@ -5,7 +5,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 
-def test_wheel_uses_the_botticelle_distribution_identity(tmp_path: Path) -> None:
+def test_wheel_uses_one_log_distribution_identity(tmp_path: Path) -> None:
     project_root = Path(__file__).parent
     completed = subprocess.run(
         [
@@ -25,16 +25,20 @@ def test_wheel_uses_the_botticelle_distribution_identity(tmp_path: Path) -> None
     )
 
     assert completed.returncode == 0, completed.stdout + completed.stderr
-    wheel = next(tmp_path.glob("botticelle_onelog-*.whl"))
+    wheel = next(tmp_path.glob("one_log-0.1.1-*.whl"))
     with ZipFile(wheel) as archive:
+        names = archive.namelist()
         metadata_path = next(
-            name for name in archive.namelist() if name.endswith(".dist-info/METADATA")
+            name for name in names if name.endswith(".dist-info/METADATA")
         )
         metadata = BytesParser().parsebytes(archive.read(metadata_path))
 
-    assert metadata["Name"] == "botticelle-onelog"
+    assert metadata["Name"] == "one-log"
+    assert metadata["Version"] == "0.1.1"
     assert metadata["Author"] == "BottiCelle"
-    assert any(
-        value.endswith("https://github.com/BottiCelle/onelog")
-        for value in metadata.get_all("Project-URL")
-    )
+    assert "onelog.py" in names
+    assert set(metadata.get_all("Project-URL")) == {
+        "Homepage, https://github.com/BottiCelle/onelog",
+        "Repository, https://github.com/BottiCelle/onelog",
+        "Issues, https://github.com/BottiCelle/onelog/issues",
+    }
