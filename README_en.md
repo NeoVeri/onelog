@@ -19,7 +19,7 @@ A lightweight Python logging module built on [Rich](https://github.com/textualiz
 - `rich` (only dependency)
 
 ```bash
-python3 -m pip install one-log
+python3 -m pip install onelogg
 ```
 
 You can also install a tagged release directly from GitHub:
@@ -29,7 +29,7 @@ python3 -m pip install "git+https://github.com/BottiCelle/onelog.git@v0.1.1"
 ```
 
 The current package version is `0.1.1`. Its distribution name is
-`one-log`, while its import name remains `onelog`.
+`onelogg`, while its import name remains `onelog`.
 
 ## Usage
 
