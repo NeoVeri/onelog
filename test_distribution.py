@@ -37,7 +37,8 @@ def test_wheel_uses_one_log_distribution_identity(tmp_path: Path) -> None:
     assert metadata["Version"] == "0.1.1"
     assert metadata["Author"] == "BottiCelle"
     assert "onelog.py" in names
-    assert any(
-        value.endswith("https://github.com/BottiCelle/onelog")
-        for value in metadata.get_all("Project-URL")
-    )
+    assert set(metadata.get_all("Project-URL")) == {
+        "Homepage, https://github.com/BottiCelle/onelog",
+        "Repository, https://github.com/BottiCelle/onelog",
+        "Issues, https://github.com/BottiCelle/onelog/issues",
+    }

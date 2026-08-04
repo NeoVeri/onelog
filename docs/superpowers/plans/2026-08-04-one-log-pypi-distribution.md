@@ -27,6 +27,7 @@
 - `test_fatal.py`: public package version and logger behavior tests.
 - `README.md`: Chinese installation and distribution-name documentation.
 - `README_en.md`: English installation and distribution-name documentation.
+- `.github/dependabot.yml`: weekly GitHub Actions dependency updates.
 - `.github/workflows/publish.yml`: release build, artifact transfer, and OIDC publication.
 
 ### Task 1: Change the distribution identity and version test-first
@@ -78,10 +79,11 @@ def test_wheel_uses_one_log_distribution_identity(tmp_path: Path) -> None:
     assert metadata["Version"] == "0.1.1"
     assert metadata["Author"] == "BottiCelle"
     assert "onelog.py" in names
-    assert any(
-        value.endswith("https://github.com/BottiCelle/onelog")
-        for value in metadata.get_all("Project-URL")
-    )
+    assert set(metadata.get_all("Project-URL")) == {
+        "Homepage, https://github.com/BottiCelle/onelog",
+        "Repository, https://github.com/BottiCelle/onelog",
+        "Issues, https://github.com/BottiCelle/onelog/issues",
+    }
 ```
 
 Change the version assertion in `test_fatal.py` to:
@@ -89,6 +91,11 @@ Change the version assertion in `test_fatal.py` to:
 ```python
 assert onelog.__version__ == "0.1.1"
 ```
+
+Final-review regression hardening: the exact `Project-URL` set assertion above
+was added after the metadata implementation was already correct. Its focused
+characterization run passed against the current implementation; no artificial
+RED result was created for that assertion.
 
 - [ ] **Step 2: Run the focused tests and verify RED**
 
@@ -155,6 +162,7 @@ git commit -m "chore: rename PyPI distribution to one-log"
 **Files:**
 - Modify: `README.md`
 - Modify: `README_en.md`
+- Create: `.github/dependabot.yml`
 - Create: `.github/workflows/publish.yml`
 
 **Interfaces:**
@@ -194,10 +202,10 @@ jobs:
       contents: read
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.13"
 
@@ -214,7 +222,7 @@ jobs:
         run: python -m twine check dist/*
 
       - name: Store distributions
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: python-package-distributions
           path: dist/
@@ -230,16 +238,32 @@ jobs:
       id-token: write
     steps:
       - name: Download distributions
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: python-package-distributions
           path: dist/
 
       - name: Publish distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
 ```
 
-- [ ] **Step 3: Run the complete suite**
+- [ ] **Step 3: Configure GitHub Actions dependency updates**
+
+Create `.github/dependabot.yml` with:
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+```
+
+Dependabot update pull requests must retain full commit-SHA pins in the
+publishing workflow, with readable version comments alongside them.
+
+- [ ] **Step 4: Run the complete suite**
 
 Run:
 
@@ -249,13 +273,14 @@ python -m pytest -v
 
 Expected: all tests PASS with no warnings or errors.
 
-- [ ] **Step 4: Inspect the human-facing docs and workflow configuration**
+- [ ] **Step 5: Inspect the human-facing docs and workflow configuration**
 
 Run:
 
 ```bash
 rg -n "botticelle-onelog|version is `0\.1\.0`|版本为 `0\.1\.0`" README.md README_en.md pyproject.toml test_distribution.py
 sed -n '1,220p' .github/workflows/publish.yml
+sed -n '1,120p' .github/dependabot.yml
 git diff --check
 ```
 
@@ -264,10 +289,10 @@ configuration in Step 2 without a password, and `git diff --check` succeeds.
 The real release run in Task 4 is the authoritative workflow behavior test;
 human prose and YAML source text do not receive brittle string-assertion tests.
 
-- [ ] **Step 5: Commit documentation and automation**
+- [ ] **Step 6: Commit documentation and automation**
 
 ```bash
-git add README.md README_en.md .github/workflows/publish.yml
+git add README.md README_en.md .github/dependabot.yml .github/workflows/publish.yml
 git commit -m "ci: publish one-log releases to PyPI"
 ```
 
@@ -319,10 +344,12 @@ Expected: Twine reports `PASSED` for both artifacts and the wheel listing contai
 install_env=$(mktemp -d)
 python -m venv "$install_env/venv"
 "$install_env/venv/bin/python" -m pip install "$release_env/dist/one_log-0.1.1-py3-none-any.whl"
-"$install_env/venv/bin/python" -c 'from onelog import get_logger; import onelog; assert onelog.__version__ == "0.1.1"; assert callable(get_logger)'
+(cd /tmp && "$install_env/venv/bin/python" -c 'import sys; from pathlib import Path; from onelog import get_logger; import onelog; assert Path(sys.prefix).resolve() in Path(onelog.__file__).resolve().parents; assert onelog.__version__ == "0.1.1"; assert callable(get_logger)')
 ```
 
-Expected: installation and import command both exit successfully.
+Expected: installation and import command both exit successfully, and the
+resolved `onelog` module path is inside the isolated environment's
+`sys.prefix`, proving the checkout did not satisfy the import.
 
 - [ ] **Step 5: Confirm the worktree is release-ready**
 
@@ -403,12 +430,29 @@ Expected: GitHub creates tag and release `v0.1.1`; do not reuse or move `v0.1.0`
 - [ ] **Step 6: Watch the publishing workflow to completion**
 
 ```bash
-run_id=$(gh run list --repo BottiCelle/onelog --workflow publish.yml --event release --limit 1 --json databaseId --jq '.[0].databaseId')
-test -n "$run_id"
+git fetch origin tag v0.1.1
+release_sha=$(git rev-parse 'v0.1.1^{commit}')
+run_id=
+for attempt in $(seq 1 30); do
+  run_id=$(gh run list --repo BottiCelle/onelog --workflow publish.yml --event release --limit 50 --json databaseId,headSha --jq "map(select(.headSha == \"$release_sha\"))[0].databaseId // empty")
+  if test -n "$run_id"; then
+    break
+  fi
+  if test "$attempt" -eq 30; then
+    echo "No release-event publish.yml run found for $release_sha after 30 attempts" >&2
+    exit 1
+  fi
+  sleep 10
+done
 gh run watch "$run_id" --repo BottiCelle/onelog --exit-status
 ```
 
-Expected: both build and publish jobs complete successfully. If a job fails, inspect the run logs and use the CI-debugging workflow before changing or rerunning anything.
+Expected: the command resolves the commit behind `v0.1.1`, finds the
+release-event `publish.yml` run whose `headSha` is that exact commit within five
+minutes, and watches that run's database ID until both build and publish jobs
+complete successfully. If no matching run appears or a job fails, stop, inspect
+the run state or logs, and use the CI-debugging workflow before changing or
+rerunning anything.
 
 - [ ] **Step 7: Verify the public PyPI release and clean installation**
 
@@ -416,11 +460,13 @@ Expected: both build and publish jobs complete successfully. If a job fails, ins
 published_env=$(mktemp -d)
 python -m venv "$published_env/venv"
 "$published_env/venv/bin/python" -m pip install --no-cache-dir "one-log==0.1.1"
-"$published_env/venv/bin/python" -c 'from onelog import get_logger; import onelog; assert onelog.__version__ == "0.1.1"; assert callable(get_logger)'
+(cd /tmp && "$published_env/venv/bin/python" -c 'import sys; from pathlib import Path; from onelog import get_logger; import onelog; assert Path(sys.prefix).resolve() in Path(onelog.__file__).resolve().parents; assert onelog.__version__ == "0.1.1"; assert callable(get_logger)')
 "$published_env/venv/bin/python" -m pip show one-log
 ```
 
-Expected: PyPI installation succeeds, the import smoke test exits successfully, and `pip show` reports `Name: one-log` and `Version: 0.1.1`.
+Expected: PyPI installation succeeds, the import smoke test resolves `onelog`
+from inside the isolated environment's `sys.prefix`, and `pip show` reports
+`Name: one-log` and `Version: 0.1.1`.
 
 - [ ] **Step 8: Audit the final external state**
 
