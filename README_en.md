@@ -19,17 +19,17 @@ A lightweight Python logging module built on [Rich](https://github.com/textualiz
 - `rich` (only dependency)
 
 ```bash
-python3 -m pip install .
+python3 -m pip install one-log
 ```
 
 You can also install a tagged release directly from GitHub:
 
 ```bash
-python3 -m pip install "git+https://github.com/BottiCelle/onelog.git@v0.1.0"
+python3 -m pip install "git+https://github.com/BottiCelle/onelog.git@v0.1.1"
 ```
 
-The current package version is `0.1.0`. Its distribution name is
-`botticelle-onelog`, while its import name remains `onelog`.
+The current package version is `0.1.1`. Its distribution name is
+`one-log`, while its import name remains `onelog`.
 
 ## Usage
 
